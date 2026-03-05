@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { formatCurrency, formatDate } from '@/lib/utils'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
@@ -16,56 +16,75 @@ interface Subscription {
   isActive: boolean
 }
 
-const INITIAL_SUBSCRIPTIONS: Subscription[] = [
-  { id: '1', name: 'Netflix', amount: 15.99, frequency: 'monthly', category: 'Entertainment', isActive: true },
-  { id: '2', name: 'Spotify', amount: 9.99, frequency: 'monthly', category: 'Entertainment', isActive: true },
-  { id: '3', name: 'Amazon Prime', amount: 14.99, frequency: 'monthly', category: 'Shopping', isActive: true },
-  { id: '4', name: 'iCloud Storage', amount: 2.99, frequency: 'monthly', category: 'Utilities', isActive: true },
-]
-
 export function SubscriptionTracker() {
   const [subscriptions, setSubscriptions] = useState<Subscription[]>([])
+  const [loading, setLoading] = useState(true)
   const [addingNew, setAddingNew] = useState(false)
   const [newSub, setNewSub] = useState({
     name: '', amount: '', frequency: 'monthly', category: 'Entertainment', nextBilling: ''
   })
 
-  useEffect(() => {
-    const saved = localStorage.getItem('subscriptions')
-    if (saved) {
-      setSubscriptions(JSON.parse(saved))
-    } else {
-      setSubscriptions(INITIAL_SUBSCRIPTIONS)
+  const fetchSubscriptions = useCallback(async () => {
+    try {
+      const res = await fetch('/api/subscriptions')
+      const data = await res.json()
+      setSubscriptions(data.subscriptions || [])
+    } catch (err) {
+      console.error('Failed to load subscriptions', err)
+    } finally {
+      setLoading(false)
     }
   }, [])
 
-  const saveSubscriptions = (subs: Subscription[]) => {
-    setSubscriptions(subs)
-    localStorage.setItem('subscriptions', JSON.stringify(subs))
-  }
+  useEffect(() => {
+    fetchSubscriptions()
+  }, [fetchSubscriptions])
 
-  const addSubscription = () => {
+  const addSubscription = async () => {
     if (!newSub.name || !newSub.amount) return
-    const sub: Subscription = {
-      id: Date.now().toString(),
-      name: newSub.name,
-      amount: parseFloat(newSub.amount),
-      frequency: newSub.frequency,
-      category: newSub.category,
-      isActive: true,
-      nextBilling: newSub.nextBilling || null,
+    try {
+      const res = await fetch('/api/subscriptions', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: newSub.name,
+          amount: parseFloat(newSub.amount),
+          frequency: newSub.frequency,
+          category: newSub.category,
+          isActive: true,
+          nextBilling: newSub.nextBilling || null,
+        }),
+      })
+      const created = await res.json()
+      setSubscriptions((prev) => [...prev, created])
+      setNewSub({ name: '', amount: '', frequency: 'monthly', category: 'Entertainment', nextBilling: '' })
+      setAddingNew(false)
+    } catch (err) {
+      console.error('Failed to add subscription', err)
     }
-    saveSubscriptions([...subscriptions, sub])
-    setNewSub({ name: '', amount: '', frequency: 'monthly', category: 'Entertainment', nextBilling: '' })
-    setAddingNew(false)
   }
 
-  const toggleActive = (id: string) => {
-    saveSubscriptions(subscriptions.map((s) => s.id === id ? { ...s, isActive: !s.isActive } : s))
+  const toggleActive = async (sub: Subscription) => {
+    try {
+      const res = await fetch(`/api/subscriptions/${sub.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ...sub, isActive: !sub.isActive }),
+      })
+      const updated = await res.json()
+      setSubscriptions((prev) => prev.map((s) => s.id === sub.id ? updated : s))
+    } catch (err) {
+      console.error('Failed to toggle subscription', err)
+    }
   }
 
-  const deleteSubscription = (id: string) => {
-    saveSubscriptions(subscriptions.filter((s) => s.id !== id))
+  const deleteSubscription = async (id: string) => {
+    try {
+      await fetch(`/api/subscriptions/${id}`, { method: 'DELETE' })
+      setSubscriptions((prev) => prev.filter((s) => s.id !== id))
+    } catch (err) {
+      console.error('Failed to delete subscription', err)
+    }
   }
 
   const getMonthlyAmount = (sub: Subscription) => {
@@ -173,7 +192,9 @@ export function SubscriptionTracker() {
 
       {/* Subscriptions List */}
       <div className="space-y-2">
-        {subscriptions.length === 0 ? (
+        {loading ? (
+          <div className="text-center py-8 text-gray-600 text-sm">Loading subscriptions...</div>
+        ) : subscriptions.length === 0 ? (
           <div className="glass rounded-xl p-8 text-center text-gray-600">
             <CreditCard className="w-8 h-8 mx-auto mb-2 opacity-50" />
             <p className="text-sm">No subscriptions tracked yet</p>
@@ -215,7 +236,7 @@ export function SubscriptionTracker() {
 
               <div className="flex items-center gap-2 flex-shrink-0">
                 <button
-                  onClick={() => toggleActive(sub.id)}
+                  onClick={() => toggleActive(sub)}
                   className={`transition-colors ${sub.isActive ? 'text-green-400 hover:text-yellow-400' : 'text-gray-600 hover:text-green-400'}`}
                   title={sub.isActive ? 'Pause' : 'Activate'}
                 >

@@ -16,6 +16,7 @@ export async function GET(request: Request) {
     if (category && category !== 'all') where.category = category
     if (type && type !== 'all') where.type = type
     if (search) {
+      // SQLite LIKE is case-insensitive for ASCII characters by default
       where.OR = [
         { description: { contains: search } },
         { merchant: { contains: search } },

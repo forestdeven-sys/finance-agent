@@ -100,7 +100,7 @@ export function parseCSVRow(row: Record<string, string>): {
 }
 
 export function generateId(): string {
-  return Math.random().toString(36).substring(2, 15)
+  return crypto.randomUUID()
 }
 
 export function getMonthKey(date: Date): string {

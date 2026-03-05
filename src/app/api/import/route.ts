@@ -114,7 +114,24 @@ export async function POST(request: Request) {
     }
 
     if (transactions.length > 0) {
-      await prisma.transaction.createMany({ data: transactions })
+      // Deduplicate: skip rows that already exist (same date + description + amount)
+      const existing = await prisma.transaction.findMany({
+        where: {
+          date: { in: transactions.map((t) => t.date) },
+        },
+        select: { date: true, description: true, amount: true },
+      })
+      const existingSet = new Set(
+        existing.map((e) => `${e.date.toISOString()}|${e.description}|${e.amount}`)
+      )
+      const deduped = transactions.filter(
+        (t) => !existingSet.has(`${t.date.toISOString()}|${t.description}|${t.amount}`)
+      )
+      rowsSkipped += transactions.length - deduped.length
+      rowsImported = deduped.length
+      if (deduped.length > 0) {
+        await prisma.transaction.createMany({ data: deduped })
+      }
     }
 
     await prisma.fileImport.update({

@@ -44,13 +44,17 @@ export function BudgetPlanner() {
   const loadData = useCallback(async () => {
     setLoading(true)
     try {
-      // Load transactions for the selected month
       const [year, mon] = month.split('-')
       const startDate = `${year}-${mon}-01`
       const endDate = `${year}-${mon}-31`
-      const res = await fetch(`/api/transactions?limit=1000&startDate=${startDate}&endDate=${endDate}&type=debit`)
-      const data = await res.json()
-      setTransactions(data.transactions || [])
+      const [txRes, budgetRes] = await Promise.all([
+        fetch(`/api/transactions?limit=1000&startDate=${startDate}&endDate=${endDate}&type=debit`),
+        fetch(`/api/budgets?month=${month}`),
+      ])
+      const txData = await txRes.json()
+      const budgetData = await budgetRes.json()
+      setTransactions(txData.transactions || [])
+      setBudgets(budgetData.budgets || [])
     } catch (err) {
       console.error('Failed to load budget data', err)
     } finally {
@@ -59,12 +63,6 @@ export function BudgetPlanner() {
   }, [month])
 
   useEffect(() => {
-    const saved = localStorage.getItem(`budgets-${month}`)
-    if (saved) {
-      setBudgets(JSON.parse(saved))
-    } else {
-      setBudgets([])
-    }
     loadData()
   }, [month, loadData])
 
@@ -76,27 +74,30 @@ export function BudgetPlanner() {
     return { ...budget, spent }
   }
 
-  const saveBudgets = (newBudgets: BudgetItem[]) => {
-    setBudgets(newBudgets)
-    localStorage.setItem(`budgets-${month}`, JSON.stringify(newBudgets))
-  }
-
-  const addBudget = () => {
+  const addBudget = async () => {
     if (!newAmount || parseFloat(newAmount) <= 0) return
-    const budget: BudgetItem = {
-      id: Date.now().toString(),
-      category: newCategory,
-      amount: parseFloat(newAmount),
-      spent: 0,
-      month,
+    try {
+      const res = await fetch('/api/budgets', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ category: newCategory, amount: parseFloat(newAmount), month }),
+      })
+      const created = await res.json()
+      setBudgets((prev) => [...prev, created])
+      setNewAmount('')
+      setAddingNew(false)
+    } catch (err) {
+      console.error('Failed to add budget', err)
     }
-    saveBudgets([...budgets, budget])
-    setNewAmount('')
-    setAddingNew(false)
   }
 
-  const deleteBudget = (id: string) => {
-    saveBudgets(budgets.filter((b) => b.id !== id))
+  const deleteBudget = async (id: string) => {
+    try {
+      await fetch(`/api/budgets/${id}`, { method: 'DELETE' })
+      setBudgets((prev) => prev.filter((b) => b.id !== id))
+    } catch (err) {
+      console.error('Failed to delete budget', err)
+    }
   }
 
   const budgetsWithSpent = budgets.map(getBudgetWithSpent)
