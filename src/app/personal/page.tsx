@@ -1,5 +1,6 @@
 'use client'
 
+import { useEffect } from 'react'
 import { useAppStore } from '@/lib/store'
 import { Sidebar } from '@/components/layout/Sidebar'
 import { ChatPanel } from '@/components/layout/ChatPanel'
@@ -21,10 +22,9 @@ const TAB_TITLES: Record<string, string> = {
 export default function PersonalPage() {
   const { activePersonalTab, setActiveSection } = useAppStore()
 
-  // Ensure section is set
-  if (typeof window !== 'undefined') {
+  useEffect(() => {
     setActiveSection('personal')
-  }
+  }, [setActiveSection])
 
   const renderContent = () => {
     switch (activePersonalTab) {

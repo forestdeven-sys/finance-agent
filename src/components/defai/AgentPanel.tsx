@@ -93,7 +93,7 @@ export function AgentPanel() {
   const agentTypes = ['momentum', 'arbitrage', 'sentiment', 'scalping', 'mean_reversion', 'custom']
   const models = [
     'anthropic/claude-3.5-sonnet',
-    'anthropic/claude-3-5-haiku',
+    'anthropic/claude-3.5-haiku',
     'google/gemini-flash-1.5',
     'openai/gpt-4o-mini',
   ]

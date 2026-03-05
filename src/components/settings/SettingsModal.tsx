@@ -25,7 +25,7 @@ interface Settings {
 
 const MODELS = [
   { value: 'anthropic/claude-3.5-sonnet', label: 'Claude 3.5 Sonnet', tier: 'premium' },
-  { value: 'anthropic/claude-3-5-haiku', label: 'Claude 3.5 Haiku', tier: 'fast' },
+  { value: 'anthropic/claude-3.5-haiku', label: 'Claude 3.5 Haiku', tier: 'fast' },
   { value: 'google/gemini-flash-1.5', label: 'Gemini 1.5 Flash', tier: 'fast' },
   { value: 'openai/gpt-4o', label: 'GPT-4o', tier: 'premium' },
   { value: 'openai/gpt-4o-mini', label: 'GPT-4o Mini', tier: 'fast' },
@@ -39,7 +39,7 @@ export function SettingsModal() {
   const [activeTab, setActiveTab] = useState<SettingsTab>('api')
   const [settings, setSettings] = useState<Settings>({
     primaryModel: 'anthropic/claude-3.5-sonnet',
-    reasoningModel: 'anthropic/claude-3-5-haiku',
+    reasoningModel: 'anthropic/claude-3.5-haiku',
     documentModel: 'google/gemini-flash-1.5',
     currency: 'USD',
     themeColor: 'cyan',
@@ -66,7 +66,7 @@ export function SettingsModal() {
       setSettings({
         openrouterApiKey: data.openrouterApiKey || '',
         primaryModel: data.primaryModel || 'anthropic/claude-3.5-sonnet',
-        reasoningModel: data.reasoningModel || 'anthropic/claude-3-5-haiku',
+        reasoningModel: data.reasoningModel || 'anthropic/claude-3.5-haiku',
         documentModel: data.documentModel || 'google/gemini-flash-1.5',
         currency: data.currency || 'USD',
         themeColor: data.themeColor || 'cyan',

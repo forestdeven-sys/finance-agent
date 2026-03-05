@@ -12,7 +12,7 @@ model Settings {
   id                String   @id @default("default")
   openrouterApiKey  String?
   primaryModel      String   @default("anthropic/claude-3.5-sonnet")
-  reasoningModel    String   @default("anthropic/claude-3-5-haiku")
+  reasoningModel    String   @default("anthropic/claude-3.5-haiku")
   documentModel     String   @default("google/gemini-flash-1.5")
   currency          String   @default("USD")
   themeColor        String   @default("cyan")
@@ -105,7 +105,7 @@ model TradingAgent {
   id           String   @id @default(cuid())
   name         String
   type         String
-  model        String   @default("anthropic/claude-3-5-haiku")
+  model        String   @default("anthropic/claude-3.5-haiku")
   systemPrompt String
   isActive     Boolean  @default(true)
   config       String   @default("{}")

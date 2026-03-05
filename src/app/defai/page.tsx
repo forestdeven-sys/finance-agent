@@ -1,5 +1,6 @@
 'use client'
 
+import { useEffect } from 'react'
 import { useAppStore } from '@/lib/store'
 import { Sidebar } from '@/components/layout/Sidebar'
 import { ChatPanel } from '@/components/layout/ChatPanel'
@@ -28,9 +29,9 @@ function PerformancePlaceholder() {
 export default function DefaiPage() {
   const { activeDefaiTab, setActiveSection } = useAppStore()
 
-  if (typeof window !== 'undefined') {
+  useEffect(() => {
     setActiveSection('defai')
-  }
+  }, [setActiveSection])
 
   const renderContent = () => {
     switch (activeDefaiTab) {

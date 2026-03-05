@@ -40,17 +40,7 @@ export function ChatPanel({ section = 'personal' }: { section?: string }) {
     scrollToBottom()
   }, [messages, scrollToBottom])
 
-  useEffect(() => {
-    loadSessions()
-  }, [section]) // eslint-disable-line react-hooks/exhaustive-deps
-
-  useEffect(() => {
-    if (currentChatSessionId) {
-      loadSession(currentChatSessionId)
-    }
-  }, [currentChatSessionId]) // eslint-disable-line react-hooks/exhaustive-deps
-
-  const loadSessions = async () => {
+  const loadSessions = useCallback(async () => {
     try {
       const res = await fetch(`/api/chat?section=${section}`)
       const data = await res.json()
@@ -58,9 +48,9 @@ export function ChatPanel({ section = 'personal' }: { section?: string }) {
     } catch {
       // Silently fail
     }
-  }
+  }, [section])
 
-  const loadSession = async (sessionId: string) => {
+  const loadSession = useCallback(async (sessionId: string) => {
     try {
       const res = await fetch(`/api/chat?sessionId=${sessionId}`)
       const data = await res.json()
@@ -71,7 +61,17 @@ export function ChatPanel({ section = 'personal' }: { section?: string }) {
     } catch {
       // Silently fail
     }
-  }
+  }, [])
+
+  useEffect(() => {
+    loadSessions()
+  }, [loadSessions])
+
+  useEffect(() => {
+    if (currentChatSessionId) {
+      loadSession(currentChatSessionId)
+    }
+  }, [currentChatSessionId, loadSession])
 
   const createNewSession = async () => {
     try {
