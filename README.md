@@ -1,2 +1,13 @@
 # finance-agent
-There are 2 parts to it. 1 part is a financial planner and trakcer and budgeter with personal agent to help. you can upload files, look over statments and connect a database for the agents to save the memory. multi agent  capability through openrouter and multiple hosting. The other part of app is for DeFAI agents to financially trade for you.
+
+A DeFAI (Decentralized Finance AI) agent that autonomously trades on your behalf. The agent leverages multi-agent capabilities through OpenRouter and supports multiple hosting options.
+
+## Features
+
+- Autonomous DeFAI trading agent
+- Multi-agent architecture via OpenRouter
+- Flexible hosting support
+
+## Potential Integrations
+
+- [OpenBB](https://github.com/OpenBB-finance/OpenBB) — open-source investment research platform that could provide market data and analytics to power the DeFAI agent's trading decisions
