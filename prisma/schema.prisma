@@ -1,0 +1,152 @@
+generator client {
+  provider        = "prisma-client-js"
+  output          = "../src/generated/prisma"
+  previewFeatures = ["driverAdapters"]
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+model Settings {
+  id                String   @id @default("default")
+  openrouterApiKey  String?
+  primaryModel      String   @default("anthropic/claude-3.5-sonnet")
+  reasoningModel    String   @default("anthropic/claude-3.5-haiku")
+  documentModel     String   @default("google/gemini-flash-1.5")
+  currency          String   @default("USD")
+  themeColor        String   @default("cyan")
+  themeBackground   String   @default("#0a0a0f")
+  themeMode         String   @default("dark")
+  sidebarPosition   String   @default("left")
+  chatPanelPosition String   @default("right")
+  chatPanelWidth    Int      @default(380)
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+}
+
+model Transaction {
+  id          String   @id @default(cuid())
+  date        DateTime
+  description String
+  amount      Float
+  type        String   @default("debit")
+  category    String   @default("Uncategorized")
+  merchant    String?
+  tags        String   @default("[]")
+  notes       String?
+  source      String   @default("manual")
+  importId    String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Category {
+  id        String   @id @default(cuid())
+  name      String   @unique
+  color     String   @default("#00e5ff")
+  icon      String?
+  budget    Float?
+  createdAt DateTime @default(now())
+}
+
+model Budget {
+  id        String   @id @default(cuid())
+  category  String
+  amount    Float
+  month     String
+  spent     Float    @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Subscription {
+  id          String    @id @default(cuid())
+  name        String
+  amount      Float
+  frequency   String    @default("monthly")
+  nextBilling DateTime?
+  category    String    @default("Subscriptions")
+  isActive    Boolean   @default(true)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
+
+model ChatSession {
+  id        String        @id @default(cuid())
+  title     String        @default("New Chat")
+  section   String        @default("personal")
+  messages  ChatMessage[]
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+}
+
+model ChatMessage {
+  id        String      @id @default(cuid())
+  sessionId String
+  session   ChatSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  role      String
+  content   String
+  model     String?
+  createdAt DateTime    @default(now())
+}
+
+model FileImport {
+  id           String   @id @default(cuid())
+  filename     String
+  source       String
+  rowsImported Int      @default(0)
+  rowsSkipped  Int      @default(0)
+  status       String   @default("pending")
+  createdAt    DateTime @default(now())
+}
+
+model TradingAgent {
+  id           String   @id @default(cuid())
+  name         String
+  type         String
+  model        String   @default("anthropic/claude-3.5-haiku")
+  systemPrompt String
+  isActive     Boolean  @default(true)
+  config       String   @default("{}")
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+model Trade {
+  id           String    @id @default(cuid())
+  pair         String
+  side         String
+  entryPrice   Float
+  exitPrice    Float?
+  amount       Float
+  profit       Float?
+  status       String    @default("open")
+  strategy     String?
+  agentId      String?
+  simulationId String?
+  createdAt    DateTime  @default(now())
+  closedAt     DateTime?
+}
+
+model Simulation {
+  id           String    @id @default(cuid())
+  name         String    @default("Simulation")
+  status       String    @default("idle")
+  startBalance Float     @default(10000)
+  balance      Float     @default(10000)
+  totalTrades  Int       @default(0)
+  winRate      Float     @default(0)
+  pnl          Float     @default(0)
+  duration     Int       @default(3600)
+  strategy     String    @default("momentum")
+  pairs        String    @default("[\"SOL/USDC\"]")
+  goal         String?
+  targetProfit Float?
+  maxLoss      Float?
+  config       String    @default("{}")
+  startedAt    DateTime?
+  endedAt      DateTime?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+}
